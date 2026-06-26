@@ -16,8 +16,48 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CoreUtil {
-  private final static int mcVersion = Integer.parseInt(getMajorVersion(Bukkit.getVersion()).substring(2));
-  private final static Pattern hexPattern = Pattern.compile("\\&#[a-fA-F0-9]{6}");
+  private static final int mcVersion = getServerVersion();
+  private static final Pattern hexPattern = Pattern.compile("\\&#[a-fA-F0-9]{6}");
+
+  private static int getServerVersion() {
+    try {
+      String version = Bukkit.getBukkitVersion();
+
+      if (version.contains("-")) {
+        version = version.substring(0, version.indexOf("-"));
+      }
+
+      String[] parts = version.split("\\.");
+
+      if (parts.length >= 2) {
+        if ("1".equals(parts[0])) {
+          return Integer.parseInt(parts[1]); // 21 from 1.21.4
+        }
+
+        return Integer.parseInt(parts[0]); // 26 from 26.1.2
+      }
+    } catch (Throwable ignored) {
+    }
+
+    try {
+      String version = getMajorVersion(Bukkit.getVersion());
+
+      if (version != null) {
+        String[] parts = version.split("\\.");
+
+        if (parts.length >= 2) {
+          if ("1".equals(parts[0])) {
+            return Integer.parseInt(parts[1]);
+          }
+
+          return Integer.parseInt(parts[0]);
+        }
+      }
+    } catch (Throwable ignored) {
+    }
+
+    return Integer.MAX_VALUE;
+  }
 
   public static String parseColor(String text) {
     if (text == null) return "";
@@ -34,6 +74,7 @@ public class CoreUtil {
 
   private static String getMajorVersion(String version) {
     if (version == null) return null;
+
     int index = version.lastIndexOf("MC:");
     if (index != -1) {
       version = version.substring(index + 4, version.length() - 1);
@@ -41,8 +82,10 @@ public class CoreUtil {
       index = version.indexOf('-');
       version = version.substring(0, index);
     }
+
     int lastDot = version.lastIndexOf('.');
     if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
+
     return version;
   }
 
